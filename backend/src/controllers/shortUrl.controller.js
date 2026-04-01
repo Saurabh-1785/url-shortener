@@ -1,53 +1,38 @@
 // src/controllers/shortUrl.controller.js
+import wrapAsync from '../utils/wrapAsync.js';
+import { NotFoundError, BadRequestError } from '../middlewares/errorHandler.js';
 import { createShortUrlService } from '../services/shortUrl.service.js';
 import { findByShortUrl, incrementClicks } from '../dao/shortUrl.dao.js';
 
-// POST /api/create
-export const createShortUrl = async (req, res, next) => {
-  try {
-    const { url } = req.body;
-    
-    if (!url) {
-      return res.status(400).json({
-        success: false,
-        message: 'URL is required'
-      });
-    }
-    
-    const userId = req.user?._id || null; // if logged in
-    const result = await createShortUrlService(url, userId);
+// No try/catch needed anymore! wrapAsync handles it
+export const createShortUrl = wrapAsync(async (req, res, next) => {
+  const { url } = req.body;
 
-    res.status(201).json({
-      success: true,
-      shortUrl: `${process.env.APP_URL}/${result.shortUrl}`,
-      data: result
-    });
-  } catch (error) {
-    next(error); // passes to error handler middleware
+  if (!url) {
+    throw new BadRequestError('URL is required');
+    // ↑ wrapAsync catches this and calls next(error)
   }
-};
 
-// GET /:id  → Redirect
-export const redirectToFullUrl = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    
-    // Find the URL
-    const urlDoc = await findByShortUrl(id);
-    
-    if (!urlDoc) {
-      return res.status(404).json({
-        success: false,
-        message: 'Short URL not found'
-      });
-    }
-    
-    // Increment click count
-    await incrementClicks(id);
-    
-    // Redirect to full URL
-    res.redirect(urlDoc.fullUrl);
-  } catch (error) {
-    next(error);
+  const userId = req.user?._id || null;
+  const result = await createShortUrlService(url, userId);
+
+  res.status(201).json({
+    success: true,
+    shortUrl: `${process.env.APP_URL}/${result.shortUrl}`,
+    data: result
+  });
+});
+
+export const redirectToFullUrl = wrapAsync(async (req, res) => {
+  const { id } = req.params;
+
+  const urlDoc = await findByShortUrl(id);
+
+  if (!urlDoc) {
+    throw new NotFoundError('Short URL not found');
   }
-};
+
+  await incrementClicks(id);
+
+  res.redirect(urlDoc.fullUrl);
+});

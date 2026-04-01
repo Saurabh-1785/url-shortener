@@ -6,6 +6,7 @@ import dotenv from 'dotenv';
 import { connectDB } from './config/db.config.js';
 import shortUrlRoute from './routes/shortUrl.route.js';
 import redirectRoute from './routes/redirect.route.js';
+import { globalErrorHandler } from './middlewares/errorHandler.js';
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
     credentials: true
 }));
+app.use(globalErrorHandler);
 
 // Connect Database
 connectDB();

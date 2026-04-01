@@ -1,23 +1,22 @@
-// src/services/shortUrl.service.js
+// src/services/shortUrl.service.js (updated)
 import { generateNanoId } from '../utils/helper.js';
-import { 
-  saveShortUrl, 
-  findByShortUrl 
-} from '../dao/shortUrl.dao.js';
+import { saveShortUrl, findByShortUrl } from '../dao/shortUrl.dao.js';
+import { ConflictError } from '../middlewares/errorHandler.js';
 
 export const createShortUrlService = async (fullUrl, userId = null) => {
-  // Generate unique short URL
   const shortUrl = generateNanoId(7);
-  
-  // Check if somehow it already exists (extremely rare)
+
   const exists = await findByShortUrl(shortUrl);
   if (exists) {
-    // Retry with new ID (retry logic)
+    // Retry logic - recursively generate new ID
     return createShortUrlService(fullUrl, userId);
   }
-  
-  // Save to database via DAO
+
   const saved = await saveShortUrl(shortUrl, fullUrl, userId);
-  
+
+  if (!saved) {
+    throw new AppError('Failed to save URL', 500);
+  }
+
   return saved;
 };
