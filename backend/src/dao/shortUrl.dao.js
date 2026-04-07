@@ -27,5 +27,17 @@ export const incrementClicks = async (shortUrl) => {
 
 // Get all URLs created by a specific user
 export const getUrlsByUserId = async (userId) => {
-  return await ShortUrl.find({ user: userId });
+  return await ShortUrl.find({ user: userId })
+    .sort({ createdAt: -1 }); // newest first
+    //      ↑
+    // timestamps:true in schema gives us createdAt
+};
+
+// Check if a custom slug already exists
+export const findByCustomSlug = async (slug) => {
+  return await ShortUrl.findOne({ shortUrl: slug });
+  // shortUrl field stores both:
+  // → random nanoids  (xK3mP9q)
+  // → custom slugs    (my-portfolio)
+  // Same field, same uniqueness rule
 };

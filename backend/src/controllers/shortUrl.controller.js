@@ -4,17 +4,36 @@ import { NotFoundError, BadRequestError } from '../middlewares/errorHandler.js';
 import { createShortUrlService } from '../services/shortUrl.service.js';
 import { findByShortUrl, incrementClicks } from '../dao/shortUrl.dao.js';
 
-// No try/catch needed anymore! wrapAsync handles it
-export const createShortUrl = wrapAsync(async (req, res, next) => {
-  const { url } = req.body;
+export const createShortUrl = wrapAsync(async (req, res) => {
+  const { url, slug } = req.body;
+  //           ↑
+  //    NEW: extract slug from body
 
   if (!url) {
     throw new BadRequestError('URL is required');
-    // ↑ wrapAsync catches this and calls next(error)
+  }
+
+  // Basic slug validation
+  if (slug) {
+    // Only allow letters, numbers, hyphens
+    const slugRegex = /^[a-zA-Z0-9-]+$/;
+    if (!slugRegex.test(slug)) {
+      throw new BadRequestError(
+        'Slug can only contain letters, numbers, and hyphens'
+      );
+    }
+    // Minimum length
+    if (slug.length < 3) {
+      throw new BadRequestError(
+        'Slug must be at least 3 characters'
+      );
+    }
   }
 
   const userId = req.user?._id || null;
-  const result = await createShortUrlService(url, userId);
+
+  // Pass slug to service
+  const result = await createShortUrlService(url, userId, slug || null);
 
   res.status(201).json({
     success: true,
@@ -35,4 +54,16 @@ export const redirectToFullUrl = wrapAsync(async (req, res) => {
   await incrementClicks(id);
 
   res.redirect(urlDoc.fullUrl);
+});
+
+export const getUserUrls = wrapAsync(async (req, res) => {
+  const urls = await getUrlsByUserId(req.user._id);
+  //                                  ↑
+  //                    req.user set by protect middleware
+
+  res.status(200).json({
+    success: true,
+    count: urls.length,
+    urls
+  });
 });

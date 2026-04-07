@@ -6,7 +6,9 @@ import dotenv from 'dotenv';
 import { connectDB } from './config/db.config.js';
 import shortUrlRoute from './routes/shortUrl.route.js';
 import redirectRoute from './routes/redirect.route.js';
+import authRoute from './routes/auth.route.js'
 import { globalErrorHandler } from './middlewares/errorHandler.js';
+import { attachUser } from './middlewares/auth.middleware.js';
 
 dotenv.config();
 
@@ -21,15 +23,20 @@ app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
     credentials: true
 }));
-app.use(globalErrorHandler);
 
 // Connect Database
 connectDB();
 
+// Attach user to all requests (optional auth)
+app.use(attachUser);
+
 // Routes
+app.use('/api/auth', authRoute);           // auth routes
 app.use('/api/create', shortUrlRoute);  // POST /api/create
 app.use('/', redirectRoute);            // GET /:id
 
+// Global error handler - MUST be last
+app.use(globalErrorHandler);
 
 // Health check route
 app.get('/health', (req, res) => {
