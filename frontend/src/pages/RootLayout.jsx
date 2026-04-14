@@ -18,34 +18,29 @@ const RootLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-
-      {/* Navbar - stays mounted on all pages */}
-      <nav className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-
-          {/* Brand */}
-          <Link to="/" className="text-xl font-bold text-blue-600">
-            ✂️ Shortify
+    <div className="min-h-screen bg-gray-50 flex flex-col font-sans">
+      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200">
+        <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
+          <Link to="/" className="text-2xl font-extrabold tracking-tight text-indigo-600 hover:text-indigo-700 transition">
+            Shortify
           </Link>
 
-          {/* Right side */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             {isAuthenticated ? (
               <>
-                <span className="text-gray-600 text-sm">
-                  Hey, {user?.name}! 👋
-                </span>
+                <div className="hidden sm:block text-sm font-medium text-gray-700">
+                  Welcome, <span className="font-semibold text-gray-900">{user?.name}</span>
+                </div>
                 <Link
                   to="/dashboard"
-                  className="text-sm text-gray-600 hover:text-blue-600"
+                  className="text-sm font-medium text-gray-600 hover:text-indigo-600 transition"
                 >
-                  My URLs
+                  Dashboard
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="text-sm bg-red-500 text-white 
-                             px-4 py-2 rounded-lg hover:bg-red-600"
+                  className="text-sm font-medium bg-white border border-gray-300 text-gray-700 
+                             px-4 py-2 rounded-xl hover:bg-gray-50 hover:text-red-600 transition-all shadow-sm"
                 >
                   Logout
                 </button>
@@ -53,21 +48,19 @@ const RootLayout = () => {
             ) : (
               <Link
                 to="/auth"
-                className="text-sm bg-blue-600 text-white 
-                           px-4 py-2 rounded-lg hover:bg-blue-700"
+                className="text-sm font-medium bg-indigo-600 text-white 
+                           px-5 py-2.5 rounded-xl hover:bg-indigo-700 transition-all shadow-md shadow-indigo-200"
               >
-                Login / Register
+                Sign In
               </Link>
             )}
           </div>
-
         </div>
       </nav>
 
-      {/* Page content renders here */}
-      {/* Outlet = placeholder for child routes */}
-      <Outlet />
-
+      <main className="flex-1">
+        <Outlet />
+      </main>
     </div>
   );
 };

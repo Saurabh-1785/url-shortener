@@ -12,26 +12,14 @@ const UrlForm = () => {
   const { isAuthenticated } = useSelector(state => state.auth);
   const queryClient = useQueryClient();
 
-  // useMutation → for POST/PUT/DELETE operations
-  // (creating, updating, deleting data)
   const { mutate, isPending, error } = useMutation({
-    
-    // The actual API call
     mutationFn: () => createShortUrlApi(url, slug || null),
-    
-    // Runs when API call SUCCEEDS
     onSuccess: (data) => {
       setResult(data.shortUrl);
       setUrl('');
       setSlug('');
-
-      // 🔑 THE KEY MOMENT
-      // Tell TanStack Query: "my-urls data is now outdated"
-      // It will automatically refetch the URL list
       queryClient.invalidateQueries({ queryKey: ['my-urls'] });
     },
-
-    // Runs when API call FAILS
     onError: (error) => {
       console.error('Failed to create URL:', error.message);
     }
@@ -39,95 +27,82 @@ const UrlForm = () => {
 
   const handleCreate = () => {
     if (!url.trim()) return;
-    mutate(); // triggers mutationFn
+    mutate();
   };
 
   return (
-    <div className="space-y-4">
-
-      {/* URL Input */}
+    <div className="space-y-5">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Long URL
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          Destination URL
         </label>
         <input
           type="url"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://very-long-url.com/..."
-          className="w-full px-4 py-3 border border-gray-300 
-                     rounded-lg focus:outline-none focus:ring-2 
-                     focus:ring-blue-500"
+          placeholder="https://long-url.com/something"
+          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 
+                     rounded-xl text-gray-900 placeholder-gray-400 focus:bg-white
+                     focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
         />
       </div>
 
-      {/* Custom Slug (only for logged in users) */}
       {isAuthenticated && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Custom Slug 
-            <span className="text-gray-400 font-normal ml-1">
-              (optional)
-            </span>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5 flex items-center justify-between">
+            <span>Custom back-half</span>
+            <span className="text-gray-400 text-xs font-normal">Optional</span>
           </label>
-          <div className="flex items-center">
-            <span className="px-3 py-3 bg-gray-100 border border-r-0 
-                            border-gray-300 rounded-l-lg text-gray-500 text-sm">
+          <div className="flex items-stretch rounded-xl shadow-sm border border-gray-200 focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 overflow-hidden transition-all">
+            <span className="px-4 py-3 bg-gray-100/50 text-gray-500 text-sm border-r border-gray-200 flex items-center justify-center font-medium">
               short.ly/
             </span>
             <input
               type="text"
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
-              placeholder="my-custom-url"
-              className="flex-1 px-4 py-3 border border-gray-300 
-                         rounded-r-lg focus:outline-none focus:ring-2 
-                         focus:ring-blue-500"
+              placeholder="custom-alias"
+              className="flex-1 px-4 py-3 bg-gray-50 text-gray-900 placeholder-gray-400 focus:bg-white focus:outline-none"
             />
           </div>
         </div>
       )}
 
-      {/* Submit Button */}
-      <button
-        onClick={handleCreate}
-        disabled={isPending || !url.trim()}
-        className="w-full py-3 bg-blue-600 text-white font-semibold 
-                   rounded-lg hover:bg-blue-700 disabled:opacity-50 
-                   disabled:cursor-not-allowed transition-colors"
-      >
-        {isPending ? 'Shortening...' : 'Shorten URL ✂️'}
-      </button>
-
-      {/* Error */}
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 
-                        rounded-lg text-red-600 text-sm">
+        <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm">
           {error.message}
         </div>
       )}
 
-      {/* Success Result */}
       {result && (
-        <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-sm text-green-600 font-medium mb-2">
-            ✅ URL Shortened!
+        <div className="p-4 bg-emerald-50/50 border border-emerald-100 rounded-xl">
+          <p className="text-sm text-emerald-700 font-medium mb-2 flex items-center gap-1.5">
+            <svg className="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+            URL Shortened Successfully
           </p>
-          <div className="flex items-center gap-2">
-            <span className="flex-1 text-blue-600 text-sm font-mono 
-                             truncate">
+          <div className="flex items-center gap-2 bg-white rounded-lg p-1.5 border border-emerald-100/50 shadow-sm">
+            <span className="flex-1 text-indigo-600 text-sm font-medium px-2 truncate selection:bg-indigo-100">
               {result}
             </span>
             <button
               onClick={() => navigator.clipboard.writeText(result)}
-              className="px-3 py-1 bg-blue-600 text-white text-sm 
-                         rounded hover:bg-blue-700"
+              className="px-3 py-1.5 bg-indigo-50 text-indigo-700 text-sm font-medium rounded-md hover:bg-indigo-100 transition-colors"
             >
               Copy
             </button>
           </div>
         </div>
       )}
+
+      <button
+        onClick={handleCreate}
+        disabled={isPending || !url.trim()}
+        className="w-full py-3.5 mt-2 bg-indigo-600 text-white font-semibold 
+                   rounded-xl shadow-md shadow-indigo-200 hover:bg-indigo-700 hover:-translate-y-0.5 
+                   transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:shadow-none"
+      >
+        {isPending ? 'Shortening...' : 'Shorten URL'}
+      </button>
 
     </div>
   );

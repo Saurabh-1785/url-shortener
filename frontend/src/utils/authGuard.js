@@ -9,7 +9,7 @@ import { loginSuccess } from '../store/slices/authSlice.js';
 export const requireAuth = async () => {
   // First check Redux store (fast, in-memory)
   const { isAuthenticated } = store.getState().auth;
-  if (isAuthenticated) return null; // already logged in ✅
+  if (isAuthenticated) return null; // already logged in
 
   // Store says not authenticated
   // But maybe user just refreshed page?
@@ -20,11 +20,11 @@ export const requireAuth = async () => {
     // Cookie was valid → backend returned user
     // Update Redux with this user
     store.dispatch(loginSuccess(data.user));
-    return null; // allow access ✅
+    return null; // allow access
 
   } catch {
     // Cookie invalid or expired
     // Redirect to auth page
-    throw redirect({ to: '/auth' }); // block access ❌
+    throw redirect({ to: '/auth' }); // block access
   }
 };
